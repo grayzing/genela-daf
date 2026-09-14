@@ -9,12 +9,16 @@ This is where the drone hosts the API endpoint. Over HTTP, the datalogger sends 
 
 import os
 import csv
+import yaml
 from datetime import datetime
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = './soil_kpis'
+with open("conf.yaml", "r") as file:
+    config = yaml.safe_load(file)
+
+UPLOAD_FOLDER = config["api_endpoint_config"]["upload_folder_path"]
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route('/soil_kpi_handler', methods=['POST']) # type: ignore

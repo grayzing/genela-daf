@@ -138,7 +138,8 @@ def main():
                         row_count = sum(1 for row in reader)
                     if int(response.json()["row_count"]) == row_count:
                         print("Row counts match. Clearing the buffer!")
-                        os.remove("soil_kpis.csv")
+                        os.remove("temp_buffer.csv")
+                        os.remove(buffer_csv_path)
                     else:
                         print("Row count is not the same across drone and datalogger! Possible corruption? Retaining buffer for now.")
                 else:

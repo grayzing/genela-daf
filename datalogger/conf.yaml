@@ -4,9 +4,8 @@ sensors:
   buffer_csv_path: "/home/jpark/Projects/daf-rpi-datalogger/datalogger/soil_kpis.csv"
 
 networking:
-  snr_tx_threshold: 2.0 # SNR needs to be \geq this qty to attempt transmission
-  max_retries: 3 # datalogger will do this many tx retries before giving up
-  ap_ssid: "SoloLink_SoloLink_UCR"
-  ap_pw: "sololink"
+  ap_ssid: "genela_daf"
+  ap_pw: "ggree024"
   ap_scan_interval: 1
+  ap_threshold: 50
   data_reservoir_ip: "10.42.0.1:5000"

@@ -12,6 +12,8 @@ import time
 import requests
 import os
 import errno
+import shutil
+import csv
 from pathlib import Path
 from rich import print
 
@@ -23,6 +25,7 @@ ap_ssid = config["networking"]["ap_ssid"]
 ap_pw = config["networking"]["ap_pw"]
 ap_scan_interval: float = config["networking"]["ap_scan_interval"]
 ap_threshold: int = config["networking"].get("ap_threshold", 50)
+buffer_csv_path: str = config["sensors"]["buffer_csv_path"]
 data_reservoir_ip: str = config["networking"]["data_reservoir_ip"]
 
 
@@ -114,7 +117,10 @@ def main():
             # print(f"Already connected to {ap_ssid}. Skipping search...")
             try:
                 url = f'http://{data_reservoir_ip}/soil_kpi_handler'
-                file_path = './soil_kpis.csv'
+                
+                # Need to copy the soil_kpi file so we can check CSV lines peacefully ^^
+                shutil.copy(buffer_csv_path, f"./temp_buffer.csv")
+                file_path = buffer_csv_path
 
                 # Open the file in binary read mode
                 with open(file_path, 'rb') as file_to_send:
@@ -127,7 +133,14 @@ def main():
                 # Check the server response
                 if response.status_code == 200:
                     print("File sent successfully!")
-                    os.remove("soil_kpis.csv")
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        reader = csv.reader(f)
+                        row_count = sum(1 for row in reader)
+                    print(response.json()) 
+                    if int(response.json()["row_count"]) == row_count:
+                        os.remove("soil_kpis.csv")
+                    else:
+                        print("Row count is not the same across drone and datalogger! Possible corruption? Retaining buffer for now.")
                 else:
                     print(f"Failed to send file. Status code: {response.status_code}")
             except requests.exceptions.ConnectionError as e:

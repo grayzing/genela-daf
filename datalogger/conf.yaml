@@ -1,15 +1,11 @@
 sensors:
   sensor_periodicity_s: 1800 # 20 minutes
   sensor_sdi12_addresses: [1,4]
-  buffer_csv_path: "/home/gray/Projects/daf-rpi-datalogger/scripts/datalogger/soil_kpis.csv"
+  buffer_csv_path: "/home/jpark/Projects/daf-rpi-datalogger/scripts/datalogger/soil_kpis.csv"
 
 networking:
   snr_tx_threshold: 2.0 # SNR needs to be \geq this qty to attempt transmission
   max_retries: 3 # datalogger will do this many tx retries before giving up
   ap_ssid: "genela_daf"
   ap_pw: "ggree024"
-  ap_scan_interval: 0.5
-
-logging:
-  log_network: false
-  log_sensors: true
+  ap_scan_interval: 1

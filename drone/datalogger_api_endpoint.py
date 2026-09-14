@@ -8,6 +8,7 @@ This is where the drone hosts the API endpoint. Over HTTP, the datalogger sends 
 """
 
 import os
+import csv
 from datetime import datetime
 from flask import Flask, request, jsonify
 
@@ -16,7 +17,7 @@ app = Flask(__name__)
 UPLOAD_FOLDER = './soil_kpis'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.route('/soil_kpi_handler', methods=['POST'])
+@app.route('/soil_kpi_handler', methods=['POST']) # type: ignore
 def receive_file():
     # Check if the post request has the file part
     if 'file' not in request.files:
@@ -33,8 +34,13 @@ def receive_file():
         file_path = os.path.join(UPLOAD_FOLDER, f"{file.filename}_{datetime.now().isoformat()}")
         file.save(file_path)
         
-        print(f"Successfully saved: {file_path}")
-        return jsonify({"message": f"File '{file.filename}' uploaded successfully!"}), 200
+        print(f"Successfully saved: {file_path}, sanity checking...")
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            row_count = sum(1 for row in reader) 
+
+        return jsonify({"row_count" : row_count}), 200
 
 if __name__ == '__main__':
     # Runs the server locally on http://127.0.0.1:5000

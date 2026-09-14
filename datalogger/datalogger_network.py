@@ -136,8 +136,8 @@ def main():
                     with open(file_path, 'r', encoding='utf-8') as f:
                         reader = csv.reader(f)
                         row_count = sum(1 for row in reader)
-                    print(response.json()) 
                     if int(response.json()["row_count"]) == row_count:
+                        print("Row counts match. Clearing the buffer!")
                         os.remove("soil_kpis.csv")
                     else:
                         print("Row count is not the same across drone and datalogger! Possible corruption? Retaining buffer for now.")

@@ -9,7 +9,8 @@ This script has the datalogger continuously search for an AP and then connect if
 import subprocess
 import yaml
 import time
-
+import requests
+from pathlib import Path
 from rich import print
 
 # Load config
@@ -103,10 +104,27 @@ def connect():
 
 def main():
     print(f"Monitoring network state for AP: {ap_ssid} (Threshold: {ap_threshold}%)")
+    file_path = Path("./soil_kpis.csv")
 
     while True:
-        if is_already_connected():
-            print(f"Already connected to {ap_ssid}. Skipping search...")
+        if is_already_connected() and file_path.is_file(): # If the Pi is connected to the AP and there are soil_kpis...
+            # print(f"Already connected to {ap_ssid}. Skipping search...")
+            url = 'http://10.1.1.10/soil_kpi_handler'
+            file_path = './soil_kpis.csv'
+
+            # Open the file in binary read mode
+            with open(file_path, 'rb') as file_to_send:
+                # Key name 'file' depends on what the receiving server expects
+                files = {'file': file_to_send}
+                
+                # Send the HTTP POST request
+                response = requests.post(url, files=files)
+
+            # Check the server response
+            if response.status_code == 200:
+                print("File sent successfully!")
+            else:
+                print(f"Failed to send file. Status code: {response.status_code}")
         else:
             print(f"Not connected. Searching for {ap_ssid}...")
             signal = find_ap()

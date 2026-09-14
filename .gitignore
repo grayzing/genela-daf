@@ -1,2 +1,3 @@
 .vscode/
-scripts/datalogger/soil_kpis.csv
+datalogger/*.csv
+drone/soil_kpis/

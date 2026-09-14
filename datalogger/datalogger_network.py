@@ -9,7 +9,10 @@ This script has the datalogger continuously search for an AP and then connect if
 import subprocess
 import yaml
 import time
-
+import requests
+import os
+import errno
+from pathlib import Path
 from rich import print
 
 # Load config
@@ -20,6 +23,7 @@ ap_ssid = config["networking"]["ap_ssid"]
 ap_pw = config["networking"]["ap_pw"]
 ap_scan_interval: float = config["networking"]["ap_scan_interval"]
 ap_threshold: int = config["networking"].get("ap_threshold", 50)
+data_reservoir_ip: str = config["networking"]["data_reservoir_ip"]
 
 
 def is_already_connected():
@@ -103,11 +107,50 @@ def connect():
 
 def main():
     print(f"Monitoring network state for AP: {ap_ssid} (Threshold: {ap_threshold}%)")
+    check_file_path = Path("./soil_kpis.csv")
 
     while True:
-        if is_already_connected():
-            print(f"Already connected to {ap_ssid}. Skipping search...")
-        else:
+        if check_file_path.is_file() and is_already_connected(): # If the Pi is connected to the AP and there are soil_kpis...
+            # print(f"Already connected to {ap_ssid}. Skipping search...")
+            try:
+                url = f'http://{data_reservoir_ip}/soil_kpi_handler'
+                file_path = './soil_kpis.csv'
+
+                # Open the file in binary read mode
+                with open(file_path, 'rb') as file_to_send:
+                    # Key name 'file' depends on what the receiving server expects
+                    files = {'file': file_to_send}
+                    
+                    # Send the HTTP POST request
+                    response = requests.post(url, files=files)
+
+                # Check the server response
+                if response.status_code == 200:
+                    print("File sent successfully!")
+                    os.remove("soil_kpis.csv")
+                else:
+                    print(f"Failed to send file. Status code: {response.status_code}")
+            except requests.exceptions.ConnectionError as e:
+                underlying_err = e.args[0] if e.args else None
+                err_num = getattr(underlying_err, 'errno', None) or getattr(getattr(underlying_err, 'reason', None), 'errno', None)
+
+                # 1. Network is Unreachable (e.g., your local Wi-Fi/Ethernet is down)
+                if err_num == errno.ENETUNREACH:
+                    print("Network is unreachable. Is the AP's IP address configured correctly in conf.yaml?")
+                    
+                # 2. No Route to Host (e.g., local connection is fine, but target machine is missing/blocked)
+                elif err_num == errno.EHOSTUNREACH:
+                    print("No route to host. This is likely normal. I will retry the connection...")
+                    
+                else:
+                    print(f"Other connection issue (Errno {err_num}): {e}\nYou should investigate that.")
+                    signal = find_ap()
+
+                    if signal is not None:
+                        if signal >= ap_threshold:
+                            connect()
+                
+        elif not is_already_connected():
             print(f"Not connected. Searching for {ap_ssid}...")
             signal = find_ap()
 

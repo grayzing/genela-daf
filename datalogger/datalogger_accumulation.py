@@ -52,6 +52,7 @@ def ensure_csv_initialized(file_path: str) -> None:
     file is ever produced.
     """
     path = Path(file_path)
+    print(f"[yellow]CSV buffer resolves to: {path.resolve()}[/yellow]")
     # Ensure directory structure exists
     path.parent.mkdir(parents=True, exist_ok=True)
 

@@ -1,2 +1,4 @@
 .vscode/
 scripts/datalogger/soil_kpis.csv
+scripts/datalogger/daf_datalogger_venv/
+scripts/drone/daf_drone_venv/

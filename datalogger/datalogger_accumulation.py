@@ -96,7 +96,7 @@ ser = get_sdi12_to_usb_port()
 time.sleep(2.5) # delay for arduino bootloader and the 1 second delay of the adapter.
 
 if ser is None:
-    print("No candidate port found. Is the SDI-12 to USB adapter receiving power? Exiting...")
+    print("[red]No candidate port found. Is your SDI-12 to USB adapter connected and receiving power? Terminating...[/red]")
     sys.exit()
 
 print("[green]Starting measurement accumulation loop...[/green]")
@@ -144,5 +144,11 @@ while True:
 
         except (IndexError, ValueError) as e:
             print(f"[red]Error parsing payload from sensor {address} ('{raw_decoded}'): {e}[/red]")
+            print(f"[red]Removing sensor {address} from the query list for this session[/red]")
+            if len(sensor_addresses) > 1:
+                sensor_addresses.remove(address)
+            else:
+                print(f"[red]All sensor addresses nonfunctioning! Terminating[/red]")
+                sys.exit()
 
     time.sleep(sensor_query_periodicity_s)

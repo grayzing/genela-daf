@@ -145,24 +145,10 @@ def main():
                 else:
                     print(f"Failed to send file. Status code: {response.status_code}")
             except requests.exceptions.ConnectionError as e:
-                underlying_err = e.args[0] if e.args else None
-                err_num = getattr(underlying_err, 'errno', None) or getattr(getattr(underlying_err, 'reason', None), 'errno', None)
-
-                # 1. Network is Unreachable (e.g., your local Wi-Fi/Ethernet is down)
-                if err_num == errno.ENETUNREACH:
-                    print("Network is unreachable. Is the AP's IP address configured correctly in conf.yaml?")
-                    
-                # 2. No Route to Host (e.g., local connection is fine, but target machine is missing/blocked)
-                elif err_num == errno.EHOSTUNREACH:
-                    print("No route to host. This is likely normal. I will retry the connection...")
-                    
-                else:
-                    print(f"Other connection issue (Errno {err_num}): {e}\nYou should investigate that.")
-                    signal = find_ap()
-
-                    if signal is not None:
-                        if signal >= ap_threshold:
-                            connect()
+                signal = find_ap()
+                if signal is not None:
+                    if signal >= ap_threshold:
+                        connect()
                 
         elif not is_already_connected():
             print(f"Not connected. Searching for {ap_ssid}...")
